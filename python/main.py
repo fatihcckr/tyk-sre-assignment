@@ -31,6 +31,6 @@ if __name__ == "__main__":
     print("Connected to Kubernetes {}".format(version))
 
     try:
-        app.start_server(args.address)
+        app.start_server(args.address, api_client)
     except KeyboardInterrupt:
         print("Server terminated")
