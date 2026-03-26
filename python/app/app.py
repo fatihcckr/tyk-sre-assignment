@@ -12,6 +12,8 @@ class AppHandler(BaseHTTPRequestHandler):
         """Catch all incoming GET requests"""
         if self.path == "/healthz":
             self.healthz()
+        elif self.path == "/readyz":
+            self.readyz()
         elif self.path == "/api/deployments/health":
             self.deployments_health()
         else:
@@ -20,6 +22,14 @@ class AppHandler(BaseHTTPRequestHandler):
     def healthz(self):
         """Responds with the health status of the application"""
         self.respond(200, "ok")
+
+    def readyz(self):
+        """Checks whether the tool can communicate with the configured k8s API server"""
+        try:
+            get_kubernetes_version(self.api_client)
+            self.respond(200, "ok")
+        except Exception as e:
+            self.respond(503, str(e))
 
     def deployments_health(self):
         """Checks whether all deployments have the expected number of ready replicas"""

@@ -76,6 +76,50 @@ class TestAppHandler(unittest.TestCase):
         self.assertEqual(resp.text, "ok")
 
 
+class TestReadyz(unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.mock_api_client = MagicMock()
+        app.AppHandler.api_client = self.mock_api_client
+
+        port = self._get_free_port()
+        self.mock_server = TCPServer(("localhost", port), app.AppHandler)
+
+        self.mock_server_thread = Thread(target=self.mock_server.serve_forever)
+        self.mock_server_thread.daemon = True
+        self.mock_server_thread.start()
+
+    def tearDown(self):
+        self.mock_server.shutdown()
+        self.mock_server.server_close()
+        app.AppHandler.api_client = None
+        super().tearDown()
+
+    def _get_free_port(self):
+        s = socket.socket(socket.AF_INET, type=socket.SOCK_STREAM)
+        s.bind(("localhost", 0))
+        __, port = s.getsockname()
+        s.close()
+        return port
+
+    def _get_url(self, target):
+        host, port = self.mock_server.server_address
+        return f"http://{host}:{port}/{target}"
+
+    @patch("app.app.get_kubernetes_version", return_value="1.25.0")
+    def test_readyz_ok(self, mock_get_version):
+        resp = requests.get(self._get_url("readyz"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.text, "ok")
+
+    @patch("app.app.get_kubernetes_version", side_effect=Exception("connection refused"))
+    def test_readyz_unavailable(self, mock_get_version):
+        resp = requests.get(self._get_url("readyz"))
+        self.assertEqual(resp.status_code, 503)
+        self.assertIn("connection refused", resp.text)
+
+
 class TestDeploymentsHealth(unittest.TestCase):
     def setUp(self):
         super().setUp()
