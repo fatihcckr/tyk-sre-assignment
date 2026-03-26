@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "tyk-sre-tool.fullname" . }}
+  labels:
+    {{- include "tyk-sre-tool.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["list", "get"]
+  - nonResourceURLs: ["/version", "/version/"]
+    verbs: ["get"]

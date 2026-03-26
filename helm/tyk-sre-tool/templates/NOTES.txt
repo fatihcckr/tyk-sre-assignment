@@ -1,0 +1,12 @@
+tyk-sre-tool has been deployed.
+
+To check the application status:
+  kubectl get pods -l "app.kubernetes.io/name={{ include "tyk-sre-tool.name" . }}"
+
+To access the service locally:
+  kubectl port-forward svc/{{ include "tyk-sre-tool.fullname" . }} 8080:{{ .Values.service.port }}
+
+Then visit:
+  http://localhost:8080/healthz    - Liveness check
+  http://localhost:8080/readyz     - Readiness check (K8s API connectivity)
+  http://localhost:8080/api/deployments/health - Deployment health status

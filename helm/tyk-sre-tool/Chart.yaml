@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tyk-sre-tool
+description: SRE tool for monitoring Kubernetes deployment health
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
